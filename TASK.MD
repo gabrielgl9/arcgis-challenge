@@ -56,4 +56,4 @@
 
 ### Stretch
 
-- [ ] Average lot size within 1 km
+- [x] Average lot size within 1 km GET /api/parcels/average-lot-size?lat=&lng=

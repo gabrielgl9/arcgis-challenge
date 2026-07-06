@@ -17,9 +17,7 @@ test.describe("Ingestion E2E", () => {
     expect(body.parcelsCount).toBeGreaterThan(0);
   });
 
-  test("ingestion is idempotent — re-running produces same counts", async ({
-    request,
-  }) => {
+  test("ingestion is idempotent — re-running produces same counts", async ({ request }) => {
     test.setTimeout(600000);
 
     const res1 = await request.post("/api/ingestion", { timeout: 600000 });

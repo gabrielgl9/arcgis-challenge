@@ -1,9 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockFindResidential = vi.fn();
+const mockFindAverageLotSize = vi.fn();
 
 vi.mock("../database/repositories/zoning.repository", () => ({
   findResidentialParcels: mockFindResidential,
+}));
+
+vi.mock("../database/repositories/parcels.repository", () => ({
+  findAverageLotSize: mockFindAverageLotSize,
 }));
 
 beforeEach(() => {
@@ -57,5 +62,32 @@ describe("parcels.service", () => {
 
     expect(result.count).toBe(3);
     expect(result.parcels).toHaveLength(3);
+  });
+
+  it("getAverageLotSize returns average and count", async () => {
+    mockFindAverageLotSize.mockResolvedValueOnce({
+      avgLotSize: 1.5,
+      parcelCount: 10,
+    });
+
+    const { getAverageLotSize } = await import("./parcels.service");
+    const result = await getAverageLotSize(30.0, -97.9);
+
+    expect(mockFindAverageLotSize).toHaveBeenCalledWith(30.0, -97.9);
+    expect(result.averageLotSizeAcres).toBe(1.5);
+    expect(result.parcelCount).toBe(10);
+  });
+
+  it("getAverageLotSize returns zero when no parcels found", async () => {
+    mockFindAverageLotSize.mockResolvedValueOnce({
+      avgLotSize: null,
+      parcelCount: 0,
+    });
+
+    const { getAverageLotSize } = await import("./parcels.service");
+    const result = await getAverageLotSize(0, 0);
+
+    expect(result.averageLotSizeAcres).toBe(0);
+    expect(result.parcelCount).toBe(0);
   });
 });

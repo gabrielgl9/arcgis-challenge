@@ -6,6 +6,11 @@ export interface NeighborhoodStatRow {
   medianParcelSize: number;
 }
 
+export interface AverageLotSizeRow {
+  avgLotSize: number | null;
+  parcelCount: number;
+}
+
 export async function findStatsByNeighborhood(): Promise<NeighborhoodStatRow[]> {
   const result = await sql.unsafe<NeighborhoodStatRow[]>(
     `
@@ -20,4 +25,22 @@ export async function findStatsByNeighborhood(): Promise<NeighborhoodStatRow[]> 
   `,
   );
   return result;
+}
+
+export async function findAverageLotSize(lat: number, lng: number): Promise<AverageLotSizeRow> {
+  const result = await sql.unsafe<AverageLotSizeRow[]>(
+    `
+    SELECT
+      AVG(p."calculatedAreaAcres") AS "avgLotSize",
+      COUNT(*)::int AS "parcelCount"
+    FROM parcels p
+    WHERE ST_DWithin(
+      p.geometry::geography,
+      ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
+      1000
+    )
+  `,
+    [lng, lat],
+  );
+  return result[0] ?? { avgLotSize: null, parcelCount: 0 };
 }
